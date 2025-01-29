@@ -8,7 +8,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
+postgres/build/devpg-declare/values.yaml
 develop-eggs/
 dist/
 downloads/
