@@ -18,11 +18,11 @@ FROM new_data s
 WHERE d.listing_id = s.listing_id
 AND d.is_current = TRUE
 AND (
-	d.property_type <> n.property_type,
-	d.beds_number <> n.beds_number,
-	d.bedrooms_number <> n.bedrooms_number,
-	d.bathrooms_number <> n.bathrooms_number,
-	d.max_allowed_guests <> n.max_allowed_guests
+	d.property_type <> s.property_type,
+	d.beds_number <> s.beds_number,
+	d.bedrooms_number <> s.bedrooms_number,
+	d.bathrooms_number <> s.bathrooms_number,
+	d.max_allowed_guests <> s.max_allowed_guests
 );
 -- Insert where invalid
 INSERT INTO listings_dim (
@@ -32,6 +32,7 @@ INSERT INTO listings_dim (
 	bedrooms_number,
 	bathrooms_number,
 	max_allowed_guests,
+	valid_from,
 	valid_to,
 	is_current
 )
@@ -51,9 +52,9 @@ LEFT JOIN listings_dim d
 	AND d.is_current = TRUE
 WHERE d.listing_id IS NULL 
 	OR (
-	d.property_type <> n.property_type,
-	d.beds_number <> n.beds_number,
-	d.bedrooms_number <> n.bedrooms_number,
-	d.bathrooms_number <> n.bathrooms_number,
-	d.max_allowed_guests <> n.max_allowed_guests
+	d.property_type <> s.property_type,
+	d.beds_number <> s.beds_number,
+	d.bedrooms_number <> s.bedrooms_number,
+	d.bathrooms_number <> s.bathrooms_number,
+	d.max_allowed_guests <> s.max_allowed_guests
 	);
