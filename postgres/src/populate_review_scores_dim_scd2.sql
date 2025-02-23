@@ -4,6 +4,7 @@ BEGIN TRANSACTION;
 WITH new_data AS (
 	SELECT
 		listing_id,
+		date_of_scraping,
 		accuracy_score,
 		checkin_score,
 		communication_score
@@ -15,6 +16,7 @@ SET valid_to = CURRENT_TIMESTAMP,
 	is_current = FALSE
 FROM new_data s
 WHERE d.listing_id = s.listing_id
+AND d.date_of_scraping = s.date_of_scraping
 AND d.is_current = TRUE
 AND (
 	d.communication_score <> s.communication_score
@@ -25,6 +27,7 @@ AND (
 WITH new_data AS (
 	SELECT
 		listing_id,
+		date_of_scraping,
 		accuracy_score,
 		checkin_score,
 		communication_score
@@ -33,6 +36,7 @@ WITH new_data AS (
 -- Insert where invalid
 INSERT INTO listings.review_scores_dim (
 	listing_id,
+	date_of_scraping,
 	accuracy_score,
 	checkin_score,
 	communication_score,
@@ -42,6 +46,7 @@ INSERT INTO listings.review_scores_dim (
 )
 SELECT 
 	s.listing_id,
+	s.date_of_scraping,
 	s.accuracy_score,
 	s.checkin_score,
 	s.communication_score,
@@ -51,6 +56,7 @@ SELECT
 FROM new_data s
 LEFT JOIN listings.review_scores_dim d
 	ON s.listing_id = d.listing_id
+	AND s.date_of_scraping = d.date_of_scraping
 	AND d.is_current = TRUE
 WHERE d.listing_id IS NULL 
 	OR (
