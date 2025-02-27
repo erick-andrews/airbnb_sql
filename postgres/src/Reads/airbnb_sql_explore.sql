@@ -36,4 +36,54 @@ ON lpf.time_dim_id = td.time_dim_id
 SELECT city, AVG(price) AS city_avg_price FROM citypt
 GROUP BY city;
 
+-- How many neighbourhoods do we have per city?
+SELECT ld.city, COUNT(DISTINCT ld.neighbourhood) AS neighbouhoods_sum FROM location_dim ld
+GROUP BY city;
+
+-- Average 
+
+
+-- Which how does date_of_scraping (season of rental) impact average neighbourhood price and total review counts by neighbourhood?
+WITH neighborhood_prices AS (
+SELECT ld2.listing_id, lpf.price, lpf.total_reviews, ld.city, ld.neighbourhood, td.date_of_scraping FROM listings_performance_fact lpf 
+LEFT JOIN location_dim ld
+ON  lpf.location_dim_id = ld.location_dim_id 
+LEFT JOIN listings_dim ld2
+ON lpf.listings_dim_id = ld2.listings_dim_id
+LEFT JOIN time_dim td 
+ON lpf.time_dim_id = td.time_dim_id
+)
+SELECT city, LOWER(neighbourhood), date_of_scraping, SUM(total_reviews) AS review_count_total, AVG(price) AS neighbourhood_avg_price FROM neighborhood_prices
+GROUP BY city, neighbourhood, date_of_scraping
+ORDER BY city ASC;
+
 -- Which neighborhoods have the highest/lowest average listing prices? (Tableau Follow Up)
+-- Using cte, subquery, and select distinct on (pg sql specific) w/ a window function.
+WITH neighborhood_prices AS (
+SELECT ld2.listing_id, lpf.price, lpf.total_reviews, ld.city, ld.neighbourhood, td.date_of_scraping FROM listings_performance_fact lpf 
+LEFT JOIN location_dim ld
+ON  lpf.location_dim_id = ld.location_dim_id 
+LEFT JOIN listings_dim ld2
+ON lpf.listings_dim_id = ld2.listings_dim_id
+LEFT JOIN time_dim td 
+ON lpf.time_dim_id = td.time_dim_id
+),
+deduped AS (
+SELECT DISTINCT ON (city, LOWER(neighbourhood)) city, LOWER(neighbourhood) AS neighbourhood, AVG(price) OVER (PARTITION BY neighbourhood) AS avg_n_price FROM neighborhood_prices
+)
+SELECT * FROM deduped
+ORDER BY city, avg_n_price DESC;
+
+-- Optimized the winfow with a group by - bonus: it's generic sql
+WITH neighborhood_prices AS (
+SELECT ld2.listing_id, lpf.price, lpf.total_reviews, ld.city, ld.neighbourhood, td.date_of_scraping FROM listings_performance_fact lpf 
+LEFT JOIN location_dim ld
+ON  lpf.location_dim_id = ld.location_dim_id 
+LEFT JOIN listings_dim ld2
+ON lpf.listings_dim_id = ld2.listings_dim_id
+LEFT JOIN time_dim td 
+ON lpf.time_dim_id = td.time_dim_id
+)
+SELECT city, LOWER(neighbourhood) AS neighbourhood, AVG(price) AS avg_n_price FROM neighborhood_prices
+GROUP BY city, neighbourhood 
+ORDER BY city, avg_n_price DESC;
